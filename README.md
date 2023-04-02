@@ -1,0 +1,1 @@
+# curl-and-git-updater
