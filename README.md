@@ -1,5 +1,5 @@
 # curl-and-git-updater
-These are 2 shell scripts that provide automatic update of url file and github repo from a source file. 
+This is a shell script that provide automatic update of url file and github repo from a source file. 
 
 Format of the file liste.txt:
 	  <directory> <url>
