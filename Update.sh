@@ -38,27 +38,9 @@ while read -r line || [[ -n $line ]]; do
     dir=${line%% *}
     url=${line#* }
 
-    # Handle Git repositories
-    if [[ $url == *.git ]]; then
-        if [[ -d "$dir" ]]; then
-            # If the directory exists and a pull is required
-            if [[ $1 == "--pull" || $1 == "--all" ]]; then
-                cd "$dir"
-                print -P "%B%F{226}Updating repository: ${dir##*/}%f%b"
-                git pull || echo "Error: Failed to update $dir"
-                cd - >/dev/null
-            fi
-        elif [[ $1 == "--clone" || $1 == "--all" ]]; then
-            # If the directory does not exist and a clone is required
-            mkdir -p "$(dirname "$dir")"
-            cd "$(dirname "$dir")"
-            print -P "%B%F{226}Cloning repository: ${url##*/}%f%b"
-            git clone "$url" . || echo "Error: Failed to clone $url"
-            cd - >/dev/null
-        fi
-    else
-        # Handle files to download via curl
-        if [[ $1 == "--curl" || $1 == "--all" ]]; then
+    if [[ $1 == "--curl" || $1 == "--all" ]]; then
+        if [[ $url != *.git ]]; then
+            # Handle files to download via curl
             mkdir -p "$dir"
             cd "$dir"
             if [[ -f "${url##*/}" ]]; then
@@ -68,7 +50,29 @@ while read -r line || [[ -n $line ]]; do
                 curl -O "$url" || echo "Error: Failed to download $url"
             fi
             cd - >/dev/null
+            continue
         fi
     fi
 
+    # Handle Git repositories
+    if [[ $url == *.git ]]; then
+        if [[ $1 == "--pull" || $1 == "--all" ]]; then
+            if [[ -d "$dir" ]]; then
+                # If the directory exists we can pull
+                cd "$dir"
+                print -P "%B%F{226}Updating repository: ${dir##*/}%f%b"
+                git pull || echo "Error: Failed to update $dir"
+                cd - >/dev/null
+                continue
+            fi
+            continue
+        elif [[ $1 == "--clone" || $1 == "--all" ]]; then
+            # If the directory does not exist and a clone is required
+            mkdir -p "$(dirname "$dir")"
+            cd "$(dirname "$dir")"
+            print -P "%B%F{226}Cloning repository: ${url##*/}%f%b"
+            git clone "$url" || echo "Error: Failed to clone $url"
+            cd - >/dev/null
+        fi
+    fi
 done < liste.txt
